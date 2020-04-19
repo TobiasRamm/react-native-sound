@@ -7,10 +7,10 @@
 #endif
 #import <React/RCTConvert.h>
 
-NSString *const OutputPhone = @"Phone";
-NSString *const OutputPhoneSpeaker = @"Phone Speaker";
-NSString *const OutputBluetooth = @"Bluetooth";
-NSString *const OutputHeadphones = @"Headphones";
+NSString *const outputPhone = @"Phone";
+NSString *const outputPhoneSpeaker = @"Phone Speaker";
+NSString *const outputBluetooth = @"Bluetooth";
+NSString *const outputHeadphones = @"Headphones";
 
 @implementation RNSound {
     NSMutableDictionary *_playerPool;
@@ -259,15 +259,15 @@ RCT_EXPORT_METHOD(play: (NSDictionary *)options
 }
 
 - (void)setAudioOutput:(NSString *)output {
-    NSLog(@"Output %@",output);
-  if([output isEqualToString:OutputPhoneSpeaker]){
+    NSLog(@"output %@",output);
+  if([output isEqualToString:outputPhoneSpeaker]){
     printf("OutputPhoneSpeaker");
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
     [audioSession setActive:YES error:nil];
     [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
 
-  } else if ([output isEqualToString:OutputPhone]){
+  } else if ([output isEqualToString:outputPhone]){
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
     [audioSession setActive:YES error:nil];
