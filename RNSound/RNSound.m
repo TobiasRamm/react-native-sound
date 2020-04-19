@@ -5,6 +5,12 @@
 #else
 #import <React/RCTUtils.h>
 #endif
+#import <React/RCTConvert.h>
+
+NSString *const OutputPhone = @"Phone";
+NSString *const OutputPhoneSpeaker = @"Phone Speaker";
+NSString *const OutputBluetooth = @"Bluetooth";
+NSString *const OutputHeadphones = @"Headphones";
 
 @implementation RNSound {
     NSMutableDictionary *_playerPool;
@@ -194,18 +200,17 @@ RCT_EXPORT_METHOD(prepare
     NSError *error;
     NSURL *fileNameUrl;
     AVAudioPlayer *player;
-    NSString* fileNameEscaped = [fileName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
 
-    if ([fileNameEscaped hasPrefix:@"http"]) {
-        fileNameUrl = [NSURL URLWithString:fileNameEscaped];
+    if ([fileName hasPrefix:@"http"]) {
+        fileNameUrl = [NSURL URLWithString:fileName];
         NSData *data = [NSData dataWithContentsOfURL:fileNameUrl];
         player = [[AVAudioPlayer alloc] initWithData:data error:&error];
-    } else if ([fileNameEscaped hasPrefix:@"ipod-library://"]) {
-        fileNameUrl = [NSURL URLWithString:fileNameEscaped];
+    } else if ([fileName hasPrefix:@"ipod-library://"]) {
+        fileNameUrl = [NSURL URLWithString:fileName];
         player = [[AVAudioPlayer alloc] initWithContentsOfURL:fileNameUrl
                                                         error:&error];
     } else {
-        fileNameUrl = [NSURL URLWithString:fileNameEscaped];
+        fileNameUrl = [NSURL URLWithString:fileName];
         player = [[AVAudioPlayer alloc] initWithContentsOfURL:fileNameUrl
                                                         error:&error];
     }
@@ -233,7 +238,7 @@ RCT_EXPORT_METHOD(prepare
     }
 }
 
-RCT_EXPORT_METHOD(play
+RCT_EXPORT_METHOD(play: (NSDictionary *)options
                   : (nonnull NSNumber *)key withCallback
                   : (RCTResponseSenderBlock)callback) {
     [[AVAudioSession sharedInstance] setActive:YES error:nil];
@@ -246,9 +251,31 @@ RCT_EXPORT_METHOD(play
     AVAudioPlayer *player = [self playerForKey:key];
     if (player) {
         [[self callbackPool] setObject:[callback copy] forKey:key];
+        NSString *output = [RCTConvert NSString:options[@"output"]];
+        [self setAudioOutput:output];
         [player play];
         [self setOnPlay:YES forPlayerKey:key];
     }
+}
+
+- (void)setAudioOutput:(NSString *)output {
+    NSLog(@"Output %@",output);
+  if([output isEqualToString:OutputPhoneSpeaker]){
+    printf("OutputPhoneSpeaker");
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    [audioSession setActive:YES error:nil];
+    [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+
+  } else if ([output isEqualToString:OutputPhone]){
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    [audioSession setActive:YES error:nil];
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+    printf("OutputPhone");
+  } else {
+    [[AVAudioSession sharedInstance] overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+  }
 }
 
 RCT_EXPORT_METHOD(pause

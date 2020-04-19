@@ -34,18 +34,18 @@ function Sound(filename, basePath, onError, options) {
 
     if (!IsWindows) {
       this.onPlaySubscription = eventEmitter.addListener(
-        'onPlayChange',
-        (param) => {
-          const { isPlaying, playerKey } = param;
-          if (playerKey === this._key) {
-            if (isPlaying) {
-              this._playing = true;
+          'onPlayChange',
+          (param) => {
+            const { isPlaying, playerKey } = param;
+            if (playerKey === this._key) {
+              if (isPlaying) {
+                this._playing = true;
+              }
+              else {
+                this._playing = false;
+              }
             }
-            else {
-              this._playing = false;
-            }
-          }
-        },
+          },
       );
     }
   }
@@ -80,9 +80,9 @@ Sound.prototype.isLoaded = function() {
   return this._loaded;
 };
 
-Sound.prototype.play = function(onEnd) {
+Sound.prototype.play = function(option, onEnd) {
   if (this._loaded) {
-    RNSound.play(this._key, (successfully) => onEnd && onEnd(successfully));
+    RNSound.play(option, this._key, (successfully) => onEnd && onEnd(successfully));
   } else {
     onEnd && onEnd(false);
   }
