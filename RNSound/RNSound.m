@@ -389,6 +389,41 @@ RCT_EXPORT_METHOD(setSpeakerPhone : (BOOL)on) {
     [session setActive:true error:nil];
 }
 
+RCT_EXPORT_METHOD(getOutputs:(RCTResponseSenderBlock)callback)
+{
+  //Reset audio output route and session catetory when get the list
+  AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+  [audioSession setCategory:AVAudioSessionCategoryPlayback error:nil];
+  [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone error:nil];
+
+  NSMutableArray *array;
+  BOOL isHeadsetOn = false;
+  BOOL isBluetoothConnected = false;
+
+  AVAudioSessionRouteDescription* route = [[AVAudioSession sharedInstance] currentRoute];
+  for (AVAudioSessionPortDescription* desc in [route outputs]) {
+    if ([[desc portType] isEqualToString:AVAudioSessionPortHeadphones]) {
+      isHeadsetOn = true;
+      continue;
+    }
+
+    if ([[desc portType] isEqualToString:AVAudioSessionPortBluetoothA2DP] ||
+        [[desc portType] isEqualToString:AVAudioSessionPortBluetoothLE] ||
+        [[desc portType] isEqualToString:AVAudioSessionPortBluetoothHFP]) {
+      isBluetoothConnected = true;
+    }
+  }
+  if (isHeadsetOn) {
+    array = [NSMutableArray arrayWithArray: @[OutputHeadphones]];
+  } else if (isBluetoothConnected) {
+    array = [NSMutableArray arrayWithArray: @[OutputPhone, OutputPhoneSpeaker, OutputBluetooth]];
+  } else {
+    array = [NSMutableArray arrayWithArray: @[OutputPhone, OutputPhoneSpeaker]];
+  }
+
+  callback(@[array]);
+}
+
 + (BOOL)requiresMainQueueSetup {
     return YES;
 }

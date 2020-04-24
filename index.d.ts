@@ -181,6 +181,8 @@ declare class Sound {
    * Whether the player is playing or not.
    */
   isPlaying(): boolean
+
+  getOutputs(callback)
 }
 
 export = Sound;

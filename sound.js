@@ -270,7 +270,13 @@ Sound.setSpeakerPhone = function(value) {
   if (!IsAndroid && !IsWindows) {
     RNSound.setSpeakerPhone(value)
   }
-}
+};
+
+Sound.getOutputs = async function(callback){
+  await RNSound.getOutputs(outputs => {
+    callback(outputs);
+  });
+};
 
 Sound.MAIN_BUNDLE = RNSound.MainBundlePath;
 Sound.DOCUMENT = RNSound.NSDocumentDirectory;
