@@ -414,11 +414,11 @@ RCT_EXPORT_METHOD(getOutputs:(RCTResponseSenderBlock)callback)
     }
   }
   if (isHeadsetOn) {
-    array = [NSMutableArray arrayWithArray: @[OutputHeadphones]];
+    array = [NSMutableArray arrayWithArray: @[outputHeadphones]];
   } else if (isBluetoothConnected) {
-    array = [NSMutableArray arrayWithArray: @[OutputPhone, OutputPhoneSpeaker, OutputBluetooth]];
+    array = [NSMutableArray arrayWithArray: @[outputPhone, outputPhoneSpeaker, outputBluetooth]];
   } else {
-    array = [NSMutableArray arrayWithArray: @[OutputPhone, OutputPhoneSpeaker]];
+    array = [NSMutableArray arrayWithArray: @[outputPhone, outputPhoneSpeaker]];
   }
 
   callback(@[array]);
