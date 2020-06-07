@@ -35,6 +35,11 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
   Double focusedPlayerKey;
   Boolean wasPlayingBeforeFocusChange = false;
 
+  private static final String OUTPUT_PHONE = "Phone";
+  private static final String OUTPUT_PHONE_SPAKER = "Phone Speaker";
+  private static final String OUTPUT_BLUETOOTH = "Bluetooth";
+  private static final String OUTPUT_HEADPHONES = "Headphones";
+
   public RNSoundModule(ReactApplicationContext context) {
     super(context);
     this.context = context;
@@ -204,12 +209,12 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
       }
       return mediaPlayer;
     }
-    
+
     return null;
   }
 
   @ReactMethod
-  public void play(final Double key, final Callback callback) {
+  public void play(final ReadableMap playbackSettings, final Double key, final Callback callback) {
     MediaPlayer player = this.playerPool.get(key);
     if (player == null) {
       setOnPlay(false, key);
@@ -264,6 +269,7 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
         return true;
       }
     });
+    setAudioOutput(playbackSettings);
     player.start();
     setOnPlay(true, key);
   }
@@ -320,7 +326,7 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
       }
     }
   }
-	
+
   @Override
   public void onCatalystInstanceDestroy() {
     java.util.Iterator it = this.playerPool.entrySet().iterator();
@@ -459,4 +465,60 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
     constants.put("IsAndroid", true);
     return constants;
   }
+
+  @ReactMethod
+      public void getOutputs(Callback callback) {
+        WritableArray outputsArray = Arguments.createArray();
+
+        AudioManager audioManager = (AudioManager)reactContext.getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager.isWiredHeadsetOn()) {
+          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_HEADPHONES);
+        } else if (audioManager.isBluetoothA2dpOn() || audioManager.isBluetoothScoOn()) {
+          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE);
+          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER);
+          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_BLUETOOTH);
+        } else {
+          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE);
+          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER);
+        }
+        callback.invoke(outputsArray);
+      }
+
+  private void setAudioOutput(ReadableMap playbackSettings)
+      {
+        if(playbackSettings != null && playbackSettings.hasKey("output"))
+        {
+          String audioPort = playbackSettings.getString("output");
+          AudioManager audioManager = (AudioManager)reactContext.getSystemService(Context.AUDIO_SERVICE);
+          switch (audioPort){
+            case RNAudioRecorderPlayerModule.OUTPUT_BLUETOOTH:
+              audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+              audioManager.startBluetoothSco();
+              audioManager.setBluetoothScoOn(true);
+              break;
+            case RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER:
+              if (audioManager.isBluetoothScoOn() || audioManager.isBluetoothA2dpOn()) {
+                audioManager.setMode(AudioManager.MODE_IN_CALL);
+              } else {
+                audioManager.setMode(AudioManager.MODE_NORMAL);
+              }
+              audioManager.stopBluetoothSco();
+              audioManager.setBluetoothScoOn(false);
+              audioManager.setSpeakerphoneOn(true);
+              break;
+            case RNAudioRecorderPlayerModule.OUTPUT_PHONE:
+              audioManager.setMode(AudioManager.MODE_IN_CALL);
+              //break;
+            case "None":
+              audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+              audioManager.stopBluetoothSco();
+              audioManager.setSpeakerphoneOn(false);
+              audioManager.setBluetoothScoOn(false);
+              break;
+            default:
+              audioManager.setSpeakerphoneOn(true);
+              break;
+          }
+        }
+      }
 }
