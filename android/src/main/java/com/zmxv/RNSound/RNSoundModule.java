@@ -8,6 +8,7 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.net.Uri;
 import android.media.AudioManager;
 
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -446,7 +447,7 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
             }
         } else {
             if (this.wasPlayingBeforeFocusChange) {
-              this.play(this.focusedPlayerKey, null);
+              this.play(null,this.focusedPlayerKey, null);
               this.wasPlayingBeforeFocusChange = false;
             }
         }
@@ -470,16 +471,16 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
       public void getOutputs(Callback callback) {
         WritableArray outputsArray = Arguments.createArray();
 
-        AudioManager audioManager = (AudioManager)reactContext.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager audioManager = (AudioManager)this.context.getSystemService(Context.AUDIO_SERVICE);
         if (audioManager.isWiredHeadsetOn()) {
-          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_HEADPHONES);
+          outputsArray.pushString(RNSoundModule.OUTPUT_HEADPHONES);
         } else if (audioManager.isBluetoothA2dpOn() || audioManager.isBluetoothScoOn()) {
-          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE);
-          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER);
-          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_BLUETOOTH);
+          outputsArray.pushString(RNSoundModule.OUTPUT_PHONE);
+          outputsArray.pushString(RNSoundModule.OUTPUT_PHONE_SPAKER);
+          outputsArray.pushString(RNSoundModule.OUTPUT_BLUETOOTH);
         } else {
-          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE);
-          outputsArray.pushString(RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER);
+          outputsArray.pushString(RNSoundModule.OUTPUT_PHONE);
+          outputsArray.pushString(RNSoundModule.OUTPUT_PHONE_SPAKER);
         }
         callback.invoke(outputsArray);
       }
@@ -489,14 +490,14 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
         if(playbackSettings != null && playbackSettings.hasKey("output"))
         {
           String audioPort = playbackSettings.getString("output");
-          AudioManager audioManager = (AudioManager)reactContext.getSystemService(Context.AUDIO_SERVICE);
+          AudioManager audioManager = (AudioManager)this.context.getSystemService(Context.AUDIO_SERVICE);
           switch (audioPort){
-            case RNAudioRecorderPlayerModule.OUTPUT_BLUETOOTH:
+            case RNSoundModule.OUTPUT_BLUETOOTH:
               audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
               audioManager.startBluetoothSco();
               audioManager.setBluetoothScoOn(true);
               break;
-            case RNAudioRecorderPlayerModule.OUTPUT_PHONE_SPAKER:
+            case RNSoundModule.OUTPUT_PHONE_SPAKER:
               if (audioManager.isBluetoothScoOn() || audioManager.isBluetoothA2dpOn()) {
                 audioManager.setMode(AudioManager.MODE_IN_CALL);
               } else {
@@ -506,7 +507,7 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
               audioManager.setBluetoothScoOn(false);
               audioManager.setSpeakerphoneOn(true);
               break;
-            case RNAudioRecorderPlayerModule.OUTPUT_PHONE:
+            case RNSoundModule.OUTPUT_PHONE:
               audioManager.setMode(AudioManager.MODE_IN_CALL);
               //break;
             case "None":
